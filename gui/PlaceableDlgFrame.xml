@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<GUI onOpen="onOpen" onClose="onClose" onCreate="onCreate">
+    <Bitmap profile="dialogFullscreenBg" id="dialogBg" />
+    <GuiElement profile="fs25_dialogBg" id="dialogElement" size="1110px 800px">        
+        <ThreePartBitmap profile="fs25_dialogBgMiddle" />
+        <ThreePartBitmap profile="fs25_dialogBgTop" />
+        <ThreePartBitmap profile="fs25_dialogBgBottom" />
+        <GuiElement profile="fs25_dialogContentContainer">
+            <Text profile="dialogTitle" text="$l10n_ui_placeableDlg_title" id="dialogTitleElement" position="0px -30px" />
+
+            <!-- Main list -->
+            <Bitmap profile="placeableDlgList" id="tableHeaderBox" position="45px -90px" size="990px 50px">
+                <Text profile="placeableDlgHeaderLeft" position="100px -0px" size="250px 40.77px" text="$l10n_ui_placeableDlg_name" textMaxNumLines="2"/>
+                <Text profile="placeableDlgHeaderLeft" position="350px -0px" size="80px 40.77px" text="$l10n_ui_placeableDlg_owner" textMaxNumLines="2"/>
+                <Text profile="placeableDlgHeaderRight" position="430px -0px" size="80px 40.77px" text="$l10n_ui_placeableDlg_daylyUpkeep" textMaxNumLines="2"/>
+                <Text profile="placeableDlgHeaderLeft" position="520px -0px" size="150px 40.77px" text="$l10n_ui_placeableDlg_storeCategoryName" textMaxNumLines="2"/>
+                <Text profile="placeableDlgHeaderLeft" position="670px -0px" size="310px 40.77px" text="$l10n_ui_placeableDlg_storeFunctions" textMaxNumLines="2"/>
+                <ThreePartBitmap profile="fs25_lineSeparatorBottom" position="0px 2px" />
+            </Bitmap>
+
+            <SmoothList profile="placeableDlgList" id="overviewTable" position="50px -145px" size="985px 550px" focusInit="onOpen" focusChangeTop="nil" focusChangeBottom="nil" onDoubleClick="onButtonWarpToPlaceable">
+                <ListItem profile="placeableDlgListItem"  name="orderRowTemplate" size="990px 80.77px" height="60px">
+                    <Bitmap profile="placeableDlgRowCellImage" position="15px 0px" name="ftIcon" size="58px 58px" />
+                    <Text profile="placeableDlgRowCellLeft" position="100px 0px" size="240px 80.77px" name="title" textLayoutMode="scrolling" />
+                    <Text profile="placeableDlgRowCellLeft" position="350px 0px" size="60px 80.77px" name="placeableOwner" textLayoutMode="scrolling" />
+                    <Text profile="placeableDlgRowCellRight" position="420px 0px" size="80px 80.77px" name="dailyUpkeep" />
+                    <Text profile="placeableDlgRowCellLeft" position="520px 0px" size="140px 80.77px" name="storeCategoryName" textLayoutMode="scrolling" />
+                    <Text profile="placeableDlgRowCellLeft" position="670px 0px" size="300px 80.77px" name="storeFunctions" textSize="10px" textMaxNumLines="4" />
+                </ListItem>
+            </SmoothList>
+
+            <ThreePartBitmap profile="fs25_listSliderBox" position="-35px -60px" size="12px 555px" with="anchorTopRight">
+                <Slider profile="fs25_listSlider" size="6px 547px" dataElementId="overviewTable" id="tableSlider" />
+            </ThreePartBitmap>  
+        </GuiElement>
+
+        <!-- Buttons -->
+        <BoxLayout profile="fs25_dialogButtonBox" size="1000px 60px">
+            <Button profile="buttonBack" text="$l10n_ui_placeableDlg_btnClose" onClick="onClickBack" />
+            <Button profile="buttonOK" text="$l10n_ui_placeableDlg_btnWarp" onClick="onButtonWarpToPlaceable" id="buttonWarpToPlaceable" />
+        </BoxLayout>
+    </GuiElement>
+</GUI>
