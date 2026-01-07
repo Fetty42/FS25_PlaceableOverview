@@ -10,10 +10,10 @@
 
             <!-- Main list -->
             <Bitmap profile="placeableDlgList" id="tableHeaderBox" position="45px -90px" size="990px 50px">
-                <Text profile="placeableDlgHeaderLeft" position="100px -0px" size="250px 40.77px" text="$l10n_ui_placeableDlg_name" textMaxNumLines="2"/>
+                <Button profile="placeableDlgHeaderLeft" position="100px -0px" size="250px 40.77px" text="$l10n_ui_placeableDlg_name" textMaxNumLines="2" onClick="onClickSortByName"/>
                 <Text profile="placeableDlgHeaderLeft" position="350px -0px" size="80px 40.77px" text="$l10n_ui_placeableDlg_owner" textMaxNumLines="2"/>
-                <Text profile="placeableDlgHeaderRight" position="430px -0px" size="80px 40.77px" text="$l10n_ui_placeableDlg_daylyUpkeep" textMaxNumLines="2"/>
-                <Text profile="placeableDlgHeaderLeft" position="520px -0px" size="150px 40.77px" text="$l10n_ui_placeableDlg_storeCategoryName" textMaxNumLines="2"/>
+                <Button profile="placeableDlgHeaderRight" position="430px -0px" size="80px 40.77px" text="$l10n_ui_placeableDlg_daylyUpkeep" textMaxNumLines="2" onClick="onClickSortByDailyUpkeep"/>
+                <Button profile="placeableDlgHeaderLeft" position="520px -0px" size="150px 40.77px" text="$l10n_ui_placeableDlg_storeCategoryName" textMaxNumLines="2" onClick="onClickSortByCategory"/>
                 <Text profile="placeableDlgHeaderLeft" position="670px -0px" size="310px 40.77px" text="$l10n_ui_placeableDlg_storeFunctions" textMaxNumLines="2"/>
                 <ThreePartBitmap profile="fs25_lineSeparatorBottom" position="0px 2px" />
             </Bitmap>
