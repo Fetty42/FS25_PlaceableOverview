@@ -1,6 +1,6 @@
-<modDesc descVersion="95">
+<modDesc descVersion="105">
 	<author>Fetty42</author>
-	<version>1.0.0.0</version>
+	<version>1.0.1.0</version>
 	<title>
         <en>Placeable Overview</en>
     </title>
@@ -15,6 +15,10 @@ Die folgenden Infos werden angezeigt:
 
 Die Anzeige kann mit der Tastenkombination RShift + P aufgerufen werden.
 
+Changelog 1.0.1.0:
+- Sortierfunktion im Fenster hinzugefügt: Sortieren nach Name, täglichem Unterhalt und Kategorie (Besitzer-Gruppierung bleibt erhalten).
+
+
 Für Fehlermeldungen oder Anregungen besucht bitte: https://github.com/Fetty42/FS25_PlaceableOverview/issues oder https://forum.giants-software.com/viewtopic.php?t=208708]]></de>
 
 		<en><![CDATA[With this MOD you can quickly get an overview of all placeables (farmhouses, stables, silos, productions, ...). Your own placeables are displayed first. You can also teleport directly to a placeable.
@@ -27,6 +31,9 @@ The following information is displayed:
 
 The display can be called up with the key combination RShift + P.
 
+Changelog 1.0.1.0:
+- Added sorting function in the window: Sort by name, daily upkeep and category (owner grouping remains).
+
 For error messages or suggestions please visit: https://github.com/Fetty42/FS25_PlaceableOverview/issues or https://forum.giants-software.com/viewtopic.php?t=208708]]></en>
 
 		<fr><![CDATA[Avec ce MOD, vous pouvez rapidement obtenir un aperçu de tous les placeables (fermes, écuries, silos, productions, ...). Vos propres placeables sont affichés en premier. Vous pouvez également vous téléporter directement vers un placeable.
@@ -38,6 +45,9 @@ Les informations suivantes sont affichées:
 - Description
 
 L'affichage peut être appelé avec la combinaison de touches Maj + P.
+
+Changelog 1.0.1.0:
+- Fonction de tri ajoutée dans la fenêtre: Trier par nom, entretien quotidien et catégorie (le regroupement des propriétaires reste).
 
 Pour les messages d'erreur ou les suggestions, veuillez visiter : https://github.com/Fetty42/FS25_PlaceableOverview/issues ou https://forum.giants-software.com/viewtopic.php?t=208708]]></fr>
     </description>

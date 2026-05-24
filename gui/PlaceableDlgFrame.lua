@@ -16,7 +16,86 @@ PlaceableDlgFrame = {}
 local DlgFrame_mt = Class(PlaceableDlgFrame, MessageDialog)
 
 PlaceableDlgFrame.mixDlg	= nil
+PlaceableDlgFrame.lastSelectedIndex = nil   -- Restore the previous position in the list
 
+PlaceableDlgFrame.sortColumn = "name" -- default: name
+PlaceableDlgFrame.sortDirection = 1 -- 1 = asc, -1 = desc
+
+function PlaceableDlgFrame:resortData()
+    if self.dataTable == nil then
+        return
+    end
+
+    table.sort(self.dataTable, function (p1, p2)
+        local p1OwnerOrder = (p1.ownerFarmId == AccessHandler.NOBODY and 100) or (p1.ownerFarmId == AccessHandler.EVERYONE and 101) or (p1.ownerFarmId == g_currentMission:getFarmId() and p1.ownerFarmId ~= FarmManager.SPECTATOR_FARM_ID and 0) or p1.ownerFarmId
+        local p2OwnerOrder = (p2.ownerFarmId == AccessHandler.NOBODY and 100) or (p2.ownerFarmId == AccessHandler.EVERYONE and 101) or (p2.ownerFarmId == g_currentMission:getFarmId() and p2.ownerFarmId ~= FarmManager.SPECTATOR_FARM_ID and 0) or p2.ownerFarmId
+
+        if p1OwnerOrder ~= p2OwnerOrder then
+            return p1OwnerOrder < p2OwnerOrder
+        end
+
+        local col = PlaceableDlgFrame.sortColumn or "name"
+        local dir = PlaceableDlgFrame.sortDirection or 1
+
+        if col == "name" then
+            local n1 = p1:getName() or ""
+            local n2 = p2:getName() or ""
+            if n1 ~= n2 then
+                if dir == 1 then return n1 < n2 else return n1 > n2 end
+            end
+        elseif col == "dailyUpkeep" then
+            local d1 = math.floor(p1:getDailyUpkeep() or 0)
+            local d2 = math.floor(p2:getDailyUpkeep() or 0)
+            if d1 ~= d2 then
+                if dir == 1 then return d1 < d2 else return d1 > d2 end
+            end
+        elseif col == "category" then
+            local c1 = ""
+            local c2 = ""
+            if p1.storeItem ~= nil and p1.storeItem.categoryName ~= nil then
+                local cat1 = g_storeManager:getCategoryByName(p1.storeItem.categoryName)
+                c1 = (cat1 and cat1.title) or p1.storeItem.categoryName or ""
+            end
+            if p2.storeItem ~= nil and p2.storeItem.categoryName ~= nil then
+                local cat2 = g_storeManager:getCategoryByName(p2.storeItem.categoryName)
+                c2 = (cat2 and cat2.title) or p2.storeItem.categoryName or ""
+            end
+            if c1 ~= c2 then
+                if dir == 1 then return c1 < c2 else return c1 > c2 end
+            end
+        end
+
+        return (p1:getName() or "") < (p2:getName() or "")
+    end)
+end
+
+function PlaceableDlgFrame:setSortColumn(column)
+    if PlaceableDlgFrame.sortColumn == column then
+        PlaceableDlgFrame.sortDirection = -PlaceableDlgFrame.sortDirection
+    else
+        PlaceableDlgFrame.sortColumn = column
+        PlaceableDlgFrame.sortDirection = 1
+    end
+
+    if self.dataTable ~= nil then
+        self:resortData()
+        if self.overviewTable ~= nil then
+            self.overviewTable:reloadData()
+        end
+    end
+end
+
+function PlaceableDlgFrame:onClickSortByName()
+    self:setSortColumn("name")
+end
+
+function PlaceableDlgFrame:onClickSortByDailyUpkeep()
+    self:setSortColumn("dailyUpkeep")
+end
+
+function PlaceableDlgFrame:onClickSortByCategory()
+    self:setSortColumn("category")
+end
 
 function PlaceableDlgFrame.new(target, custom_mt)
 	dbPrintf("PlaceableDlgFrame:new()")
@@ -47,7 +126,7 @@ function PlaceableDlgFrame:onOpen()
 	for _, placeable in pairs(g_currentMission.placeableSystem.placeables) do
         if not placeable.markedForDeletion
             and not placeable.isDeleted
-            and not placeable.isDeleteing
+            and not placeable.isDeleting
             and placeable.typeName ~= "newFence"
             -- and placeable.ownerFarmId == g_currentMission:getFarmId()
             -- and placeable.ownerFarmId ~= FarmManager.SPECTATOR_FARM_ID
@@ -56,27 +135,16 @@ function PlaceableDlgFrame:onOpen()
         end
 	end
 
-    table.sort(self.dataTable, function (p1, p2)
-        local p1OwnerOrder = (p1.ownerFarmId == AccessHandler.NOBODY and 100) or (p1.ownerFarmId == AccessHandler.EVERYONE and 101) or (p1.ownerFarmId == g_currentMission:getFarmId() and p1.ownerFarmId ~= FarmManager.SPECTATOR_FARM_ID and 0) or p1.ownerFarmId
-        local p2OwnerOrder = (p2.ownerFarmId == AccessHandler.NOBODY and 100) or (p2.ownerFarmId == AccessHandler.EVERYONE and 101) or (p2.ownerFarmId == g_currentMission:getFarmId() and p2.ownerFarmId ~= FarmManager.SPECTATOR_FARM_ID and 0) or p2.ownerFarmId
-        if p1OwnerOrder == p2OwnerOrder then
-            local p1Name        = p1:getName()
-            if p1.brand ~= nil and p1.brand.title ~= nil and p1.brand.title ~= "None" then
-                p1Name = p1.brand.title .. " " .. p1Name
-            end
-
-            local p2Name        = p2:getName()
-            if p2.brand ~= nil and p2.brand.title ~= nil and p2.brand.title ~= "None" then
-                p2Name = p2.brand.title .. " " .. p2Name
-            end
-
-            return p1Name < p2Name
-        end
-        return p1OwnerOrder < p2OwnerOrder
-    end )
+    -- sort data with grouping by owner and selected secondary sort
+    self:resortData()
 
     -- finalize dialog
-	self.overviewTable:reloadData()
+    self.overviewTable:reloadData()
+
+    --  Restore the previous position
+    if PlaceableDlgFrame.lastSelectedIndex ~= nil then
+        self.overviewTable:setSelectedItem(1, PlaceableDlgFrame.lastSelectedIndex)
+    end
 
 	self:setSoundSuppressed(true)
     FocusManager:setFocus(self.overviewTable)
@@ -120,9 +188,9 @@ function PlaceableDlgFrame:populateCellForItemInSection(list, section, index, ce
 
         -- Title
         local name        = thisPlaceable:getName()
-        if thisPlaceable.brand ~= nil and thisPlaceable.brand.title ~= nil and thisPlaceable.brand.title ~= "None" then
-            name = thisPlaceable.brand.title .. " " .. name
-        end
+        -- if thisPlaceable.brand ~= nil and thisPlaceable.brand.title ~= nil and thisPlaceable.brand.title ~= "None" then
+        --     name = thisPlaceable.brand.title .. " " .. name
+        -- end
         cell:getAttribute("title"):setText(name)
 
         -- Icon
@@ -170,13 +238,32 @@ function PlaceableDlgFrame:populateCellForItemInSection(list, section, index, ce
         cell:getAttribute("dailyUpkeep"):setText(g_i18n:formatMoney(dailyUpkeep, 0, true, true))
 
         -- Store category name
-        local storeCategorieName = g_storeManager:getCategoryByName(thisPlaceable.storeItem.categoryName).title
-        -- local storeCategorieName = string.lower(thisPlaceable.storeItem.categoryName)
-        -- storeCategorieName = string.upper(string.sub(storeCategorieName, 1, 1)) .. string.sub(storeCategorieName, 2)
-        cell:getAttribute("storeCategoryName"):setText(storeCategorieName)
+        local storeCategorieTitle = ""
+        if thisPlaceable.storeItem ~= nil and thisPlaceable.storeItem.categoryName ~= nil then
+            local category = g_storeManager:getCategoryByName(thisPlaceable.storeItem.categoryName)
+            storeCategorieTitle = (category ~= nil and category.title) or thisPlaceable.storeItem.categoryName
+        end
+        cell:getAttribute("storeCategoryName"):setText(storeCategorieTitle)
+
+        -- Folgende Kategorien ausblenden, wenn keine relevante Spezifikation existiert: FLOODLIGHTING, DECORATION, FENCES
+
+        -- Specializations
+        -- local specializationNames = ""   -- e.g.: lights, deletedNodes, ...
+        -- for _, str in pairs(thisPlaceable.specializationNames) do
+        --     if true or string.find("clearAreas, indoorAreas, foliageAreas, tipOcclusionAreas, ai, animatedObjects, leveling, triggerMarkers, dynamicallyLoadedParts, hotspots, deletedNodes, lights", str) == nil then  -- Ignore these specializations
+        --         specializationNames =  specializationNames .. (specializationNames ~= "" and ", " or "") .. str
+        --     end
+        -- end
 
         -- Store functions description
-        local storeFunctions =  thisPlaceable.storeItem.functions ~= nil and table.concat(thisPlaceable.storeItem.functions, "\n") or ""   --> description of the functions of the placeable
+        local storeFunctions = ""
+        if thisPlaceable.storeItem ~= nil and thisPlaceable.storeItem.functions ~= nil then
+            storeFunctions = table.concat(thisPlaceable.storeItem.functions, "\n")
+        end
+        -- if specializationNames ~= "" then
+        --     -- storeFunctions = storeFunctions .. (storeFunctions ~= "" and "\n" or "") .. "Specialization: " .. specializationNames
+        --     storeFunctions = "Specialization: " .. specializationNames .. (specializationNames ~= "" and "\n" or "") .. storeFunctions
+        -- end
         cell:getAttribute("storeFunctions"):setText(storeFunctions)
 
 
@@ -187,20 +274,13 @@ function PlaceableDlgFrame:populateCellForItemInSection(list, section, index, ce
         -- local isOnPublicGround = g_farmlandManager:getFarmlandOwner(thisPlaceable:getFarmlandId()) == FarmManager.SPECTATOR_FARM_ID
         -- local boughtWithFarmland = (thisPlaceable.boughtWithFarmlandSavegameOverwrite == nil and thisPlaceable.boughtWithFarmland) or thisPlaceable.boughtWithFarmlandSavegameOverwrite
 
-        -- Specializations
-        -- local specializationNames = ""   -- e.g.: lights, deletedNodes, ...
-        -- for _, str in pairs(thisPlaceable.specializationNames) do
-        --     if string.find("lights, deletedNodes, hotspots, dynamicallyLoadedParts, triggerMarkers, leveling, animatedObjects, ai, tipOcclusionAreas, foliageAreas, indoorAreas, clearAreas, placement, placeable, infoTrigger", str) == nil then
-        --         specializationNames =  specializationNames .. str .. (specializationNames ~= "" and ", " or "")
-        --     end
-        -- end
-        -- cell:getAttribute("specializationNames"):setText(specializationNames)
     end
 end
 
 function PlaceableDlgFrame:onButtonWarpToPlaceable()
     dbPrintf("PlaceableDlgFrame:onButtonWarpToPlaceable()")
 
+    PlaceableDlgFrame.lastSelectedIndex = self.overviewTable.selectedIndex
     local warpX, warpY, warpZ = 0, 0, 0
     local dropHeight       = 1.2
     local thisPlaceable     = self.dataTable[self.overviewTable.selectedIndex]
@@ -250,10 +330,9 @@ function PlaceableDlgFrame:onButtonWarpToPlaceable()
     g_gui:showGui("")
 
     if g_localPlayer ~= nil and g_localPlayer:getCurrentVehicle() ~= nil then
-        local curVehicle = g_localPlayer:getCurrentVehicle()
-        curVehicle:doLeaveVehicle()
+        g_localPlayer:leaveVehicle()
     end
-    g_localPlayer:teleportTo(warpX, warpY + dropHeight, warpZ)
+    g_localPlayer:teleportTo(warpX, warpY + dropHeight, warpZ, false, false)
 end
 
 

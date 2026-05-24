@@ -42,27 +42,51 @@ PlaceableOverview = {}; -- Class
 PlaceableOverview.dir = g_currentModDirectory
 PlaceableOverview.modName = g_currentModName
 
-PlaceableOverview.dlg			= nil
+PlaceableOverview.dlg = nil
+PlaceableOverview.guiLoaded = false
+PlaceableOverview.placeableDlgFrame = nil
 
 source(PlaceableOverview.dir .. "gui/PlaceableDlgFrame.lua")
 
+function PlaceableOverview:ensureGuiLoaded()
+	if PlaceableOverview.guiLoaded then
+		return true
+	end
+
+	g_gui:loadProfiles(PlaceableOverview.dir .. "gui/guiProfiles.xml")
+	PlaceableOverview.placeableDlgFrame = PlaceableDlgFrame.new(g_i18n)
+	g_gui:loadGui(PlaceableOverview.dir .. "gui/PlaceableDlgFrame.xml", "PlaceableDlgFrame", PlaceableOverview.placeableDlgFrame)
+	PlaceableOverview.guiLoaded = true
+
+	return true
+end
+
 function PlaceableOverview:loadMap(name)
     dbPrintHeader("PlaceableOverview:loadMap()")
+	self:ensureGuiLoaded()
 end
 
 function PlaceableOverview:ShowPlaceableDlg(actionName, keyStatus, arg3, arg4, arg5)
-	dbPrintHeader("PlaceableOverview:ShowFieldDlg()")
+	dbPrintHeader("PlaceableOverview:ShowPlaceableDlg()")
 
-	PlaceableOverview.dlg = nil
-	g_gui:loadProfiles(PlaceableOverview.dir .. "gui/guiProfiles.xml")
-	local placeableDlgFrame = PlaceableDlgFrame.new(g_i18n)
-	g_gui:loadGui(PlaceableOverview.dir .. "gui/PlaceableDlgFrame.xml", "PlaceableDlgFrame", placeableDlgFrame)
+	if not self:ensureGuiLoaded() then
+		return
+	end
+
 	PlaceableOverview.dlg = g_gui:showDialog("PlaceableDlgFrame")
 end
 
 function PlaceableOverview:onLoad(savegame)end;
 function PlaceableOverview:onUpdate(dt)end;
-function PlaceableOverview:deleteMap()end;
+
+function PlaceableOverview:deleteMap()
+	PlaceableOverview.guiLoaded = false
+	PlaceableOverview.placeableDlgFrame = nil
+	PlaceableOverview.dlg = nil
+	PlaceableOverview.actionEventRegistered = false
+	PlaceableOverview.actionEventId = nil
+end
+
 function PlaceableOverview:keyEvent(unicode, sym, modifier, isDown)end;
 function PlaceableOverview:mouseEvent(posX, posY, isDown, isUp, button)end;
 
